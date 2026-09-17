@@ -16,7 +16,9 @@ from dotenv import load_dotenv
 GAMMA_URL = "https://gamma-api.polymarket.com/markets/keyset"
 PAGE_SIZE = 100
 MIN_VOLUME_24H = float(os.getenv("MIN_VOLUME_24H", "1000"))  # skip tiny markets
-MAX_RETRIES = 3
+MAX_RETRIES = 4
+# Identify the client politely; some hosts block requests with no user agent.
+HEADERS = {"User-Agent": "forecast-collector/1.0 (+https://github.com)", "Accept": "application/json"}
 
 log = logging.getLogger("collector")
 
@@ -38,7 +40,10 @@ def first_outcome_price(market):
 
 
 def get_page(session, params):
-    """Fetch one page, retrying with exponential backoff."""
+    """Fetch one page, retrying with backoff.
+
+    403 and 429 usually mean we're being rate limited, so those wait longer.
+    """
     for attempt in range(MAX_RETRIES):
         try:
             response = session.get(GAMMA_URL, params=params, timeout=30)
@@ -47,8 +52,9 @@ def get_page(session, params):
         except requests.RequestException as error:
             if attempt == MAX_RETRIES - 1:
                 raise
-            wait = 2 ** attempt
-            log.warning("Request failed (%s); retrying in %ss", error, wait)
+            status = getattr(error.response, "status_code", None)
+            wait = (10 if status in (403, 429) else 1) * 2 ** attempt
+            log.warning("Request failed (%s); retrying in %ss", status or error, wait)
             time.sleep(wait)
 
 
@@ -56,6 +62,7 @@ def fetch_active_markets():
     """Page through every open market using the keyset cursor."""
     markets, cursor = [], None
     with requests.Session() as session:
+        session.headers.update(HEADERS)
         while True:
             # volume_num_min filters on total volume server-side; any market with
             # MIN_VOLUME_24H traded today also passes it, so nothing we keep is lost.
@@ -63,13 +70,20 @@ def fetch_active_markets():
                       "volume_num_min": MIN_VOLUME_24H}
             if cursor:
                 params["after_cursor"] = cursor
-            data = get_page(session, params)
+            try:
+                data = get_page(session, params)
+            except requests.RequestException:
+                # Keep what we already have rather than losing the whole run.
+                if not markets:
+                    raise
+                log.error("Stopped paging after %d markets; saving a partial run", len(markets))
+                return markets
             markets.extend(data.get("markets", []))
             log.info("Fetched %d markets so far", len(markets))
             cursor = data.get("next_cursor")
             if not cursor:
                 return markets
-            time.sleep(0.2)  # be polite to the API
+            time.sleep(0.5)  # be polite to the API
 
 
 def build_rows(markets, captured_at):
