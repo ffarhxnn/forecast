@@ -6,3 +6,12 @@ node_modules/
 .next/
 SETUP.md
 .DS_Store
+
+# Local credentials and generated files
+.env*
+!.env.example
+*.pem
+*.key
+__pycache__/
+*.pyc
+.DS_Store

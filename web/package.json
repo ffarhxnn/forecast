@@ -2,9 +2,9 @@
   "name": "forecast-web",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --hostname 127.0.0.1",
     "build": "next build",
-    "start": "next start"
+    "start": "next start --hostname 127.0.0.1"
   },
   "dependencies": {
     "next": "^14.2.35",
