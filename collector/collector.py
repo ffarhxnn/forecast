@@ -5,6 +5,7 @@ and appends one timestamped row per market to `market_snapshots`.
 """
 import json
 import logging
+import math
 import os
 import time
 from datetime import datetime, timezone
@@ -25,8 +26,11 @@ log = logging.getLogger("collector")
 
 def to_float(value):
     """Convert API values like "0.53" to 0.53; return None if missing or invalid."""
+    if isinstance(value, bool):
+        return None
     try:
-        return float(value)
+        result = float(value)
+        return result if math.isfinite(result) else None
     except (TypeError, ValueError):
         return None
 
@@ -34,8 +38,9 @@ def to_float(value):
 def first_outcome_price(market):
     """outcomePrices arrives as a JSON string like '["0.53", "0.47"]'."""
     try:
-        return float(json.loads(market.get("outcomePrices") or "[]")[0])
-    except (ValueError, IndexError, TypeError):
+        price = to_float(json.loads(market.get("outcomePrices") or "[]")[0])
+        return price if price is not None and 0 <= price <= 1 else None
+    except (ValueError, IndexError, KeyError, TypeError):
         return None
 
 

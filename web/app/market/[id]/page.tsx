@@ -10,13 +10,15 @@ import { WatchButton } from "./watch-button";
 
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata({ params }: { params: { id: string } }) {
-  const detail = await getMarketDetail(params.id).catch(() => null);
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const detail = await getMarketDetail(id).catch(() => null);
   return { title: detail ? `${detail.market.question} | Forecast` : "Market | Forecast" };
 }
 
-export default async function MarketPage({ params }: { params: { id: string } }) {
-  const detail = await getMarketDetail(params.id);
+export default async function MarketPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const detail = await getMarketDetail(id);
   if (!detail) notFound();
 
   const { market: m, tokenIds, outcomes, description } = detail;

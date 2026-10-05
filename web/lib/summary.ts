@@ -37,13 +37,11 @@ export function whatChanged(m: Market): string[] {
     lines.push(`${usd(m.volume24h)} traded in the last 24 hours.`);
   }
 
-  if (m.bestBid != null && m.bestAsk != null) {
+  if (m.bestBid != null && m.bestAsk != null &&
+      Number.isFinite(m.bestBid) && Number.isFinite(m.bestAsk) &&
+      m.bestBid >= 0 && m.bestAsk <= 1 && m.bestAsk >= m.bestBid) {
     const spread = Math.round((m.bestAsk - m.bestBid) * 1000) / 10;
-    if (spread <= 1) {
-      lines.push(`Buyers and sellers are ${spread}¢ apart, so the price is well supported.`);
-    } else if (spread >= 5) {
-      lines.push(`Buyers and sellers are ${spread}¢ apart, so small trades can move the price.`);
-    }
+    lines.push(`The best bid and ask are ${spread}¢ apart.`);
   }
 
   return lines;

@@ -104,8 +104,9 @@ Returning visitors with saved topics land on "For you".
 > long-lived connections, and a 10-second refresh is enough for browsing. The next step
 > would be connecting the browser straight to Polymarket's market WebSocket.
 >
-> **Why rule-based summaries instead of AI?** Every sentence is guaranteed to match the
-> data. An AI summary could invent a reason for a move.
+> **Why rule-based summaries?** Fixed rules describe price, volume and valid bid/ask spreads
+> from the available snapshots. They do not infer why prices moved or treat a narrow spread
+> as proof of liquidity or price support. Missing or malformed inputs remain unknown.
 
 ## 7. Analytics (`web/components/analytics.tsx`)
 

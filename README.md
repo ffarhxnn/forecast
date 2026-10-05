@@ -56,7 +56,7 @@ GitHub Actions, Vercel, PostHog
 - **Percentile-ranked trending score.** Volume is in dollars and moves are in probability
   points, so each feature is converted to a percentile before weighting.
 - **Rule-based summaries.** "What changed" is generated from the data with fixed rules, so
-  it can never state a reason that isn't true.
+  the summary reports observed changes without inventing causes or inferring market depth from spread.
 - **API routes as a proxy.** The browser calls my own routes, which validate input and
   cache Polymarket responses.
 
