@@ -4,7 +4,7 @@
 momentum, surfaces the biggest probability moves, and builds a personal feed from the
 topics you follow.
 
-Live demo: https://forecast-ffarhxnn.vercel.app/
+Live demo: https://forecast-wheat-three.vercel.app/
 
 ## Why I built it
 
